@@ -251,6 +251,13 @@ await client.interactive_session()
 passport = PassportLogin()
 data = await passport.login()
 # 返回: {token, hg_id, device_token, passport_uid, oauth_code}
+
+# 二维码功能（需要安装 qrcode[pil]）
+scan_id = await passport.gen_scan_login()
+# 自动生成并显示二维码：
+#  1. 终端ASCII模式显示
+#  2. 保存为PNG图片 (scan_qrcode.png)
+#  3. 用户扫码后自动轮询登录状态
 ```
 
 ### U8Login (login/login.py)
@@ -377,6 +384,15 @@ cryptography==41.0.7
     - AES加密 (CTR模式)
     - HMAC-SHA256认证
     - 密钥导出函数
+
+qrcode==7.4.2
+    - 二维码生成库
+    - 支持终端ASCII显示
+    - 支持PNG图片输出
+
+Pillow==10.1.0
+    - 图像处理库 (qrcode的PIL后端)
+    - PNG编码支持
 ```
 
 ## 性能指标

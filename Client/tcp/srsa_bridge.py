@@ -50,7 +50,20 @@ class SRSABridge:
             raise SRSABridgeError(f"GameAssembly.dll不存在: {dll_path}")
         
         try:
-            os.add_dll_directory(str(self.dll_dir))
+            # Python 3.8+支持os.add_dll_directory()
+            # 对于较低版本，需要通过环境变量或其他方式处理
+            if hasattr(os, 'add_dll_directory'):
+                os.add_dll_directory(str(self.dll_dir))
+            else:
+                # 对于Python 3.7及更低版本，尝试使用SetDllDirectory
+                try:
+                    kernel32 = ctypes.windll.kernel32
+                    kernel32.SetDllDirectoryW.argtypes = [ctypes.c_wchar_p]
+                    kernel32.SetDllDirectoryW.restype = ctypes.c_bool
+                    kernel32.SetDllDirectoryW(str(self.dll_dir))
+                except Exception as e:
+                    print(f"[SRSA] 警告: SetDllDirectory失败: {e}，尝试直接加载")
+            
             self._dll = ctypes.WinDLL(str(dll_path))
             
             # 配置加密方法

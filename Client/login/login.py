@@ -6,9 +6,17 @@
 import asyncio
 import json
 import time
+import os
 from typing import Optional, Dict, Any
 from dataclasses import dataclass
 import httpx
+
+try:
+    import qrcode
+    from qrcode.image.pure import PyPNGImage
+    HAS_QRCODE = True
+except ImportError:
+    HAS_QRCODE = False
 
 
 # 常量定义
@@ -33,7 +41,13 @@ CONFIRM_SERVER_URL = f"{U8_DOMAIN}/game/role/v1/confirm_server"
 # 标准请求头
 HEADERS = {
     "User-Agent": "Endfield/1 CFNetwork/3860.200.71 Darwin/25.1.0",
-    "Content-Type": "application/json"
+    "Content-Type": "application/json",
+    # 鹰角服务器要求的设备信息header
+    "x-devicemodel": "iPhone13,2",
+    "x-captcha-version": "4.0",
+    "x-devicetype": "0",
+    "x-deviceid": "5be137815cd88139ea5afa89d3e3c913",
+    "x-osver": "26.1",
 }
 
 
@@ -88,6 +102,43 @@ class PassportLogin:
     def __init__(self, timeout: float = 30.0):
         self.timeout = timeout
     
+    def _generate_qrcode_display(self, url: str) -> None:
+        """
+        使用qrcode库生成并显示二维码
+        支持终端显示和文件保存
+        """
+        if not HAS_QRCODE:
+            print(f"[Passport] 请安装qrcode库: pip install qrcode[pil]")
+            return
+        
+        try:
+            # 生成二维码
+            qr = qrcode.QRCode(
+                version=1,
+                error_correction=qrcode.constants.ERROR_CORRECT_L,
+                box_size=10,
+                border=4,
+            )
+            qr.add_data(url)
+            qr.make(fit=True)
+            
+            # 方式1：终端ASCII显示
+            print("\n[Passport] 二维码已生成（终端显示模式）：")
+            qr.print_ascii(invert=True)
+            print()
+            
+            # 方式2：保存为图片
+            try:
+                qr_img_path = "scan_qrcode.png"
+                img = qr.make_image(fill_color="black", back_color="white")
+                img.save(qr_img_path)
+                print(f"[Passport] 二维码已保存至: {os.path.abspath(qr_img_path)}")
+            except Exception as e:
+                print(f"[Passport] 保存二维码图片失败: {e}")
+                
+        except Exception as e:
+            print(f"[Passport] 生成二维码失败: {e}")
+    
     async def gen_scan_login(self) -> str:
         """
         第1步：生成扫码登录二维码
@@ -106,7 +157,16 @@ class PassportLogin:
                 raise RuntimeError(f"生成登录二维码失败: {data.get('msg')}")
             
             scan_id = data["data"]["scanId"]
-            print(f"[Passport] 已生成二维码，scanId: {scan_id}")
+            scan_url = data["data"].get("scanUrl", None)
+            
+            # 如果有scanUrl且安装了qrcode库，则生成二维码显示
+            if scan_url and HAS_QRCODE:
+                self._generate_qrcode_display(scan_url)
+            else:
+                print(f"[Passport] 已生成二维码，scanId: {scan_id}")
+                if scan_url:
+                    print(f"[Passport] 扫描链接: {scan_url}")
+            
             return scan_id
     
     async def poll_scan_status(self, scan_id: str, max_wait: int = 300) -> str:
@@ -146,7 +206,7 @@ class PassportLogin:
     async def token_by_scan_code(self, scan_code: str) -> Dict[str, str]:
         """
         第3步：使用scanCode获取token
-        返回 {token, hgId, deviceToken}
+        返回 {token, hgId, deviceToken/uid}
         """
         async with httpx.AsyncClient(timeout=self.timeout) as client:
             resp = await client.post(
@@ -165,12 +225,21 @@ class PassportLogin:
                 raise RuntimeError(f"获取token失败: {data.get('msg')}")
             
             result = data["data"]
-            print(f"[Passport] 已获取token, hgId: {result['hgId']}")
+            print(f"[Passport] 已获取token, hgId: {result.get('hgId', 'N/A')}")
+            
+            # 调试：打印完整响应
+            print(f"[Passport] token响应字段: {list(result.keys())}")
+            
+            # 处理deviceToken / uid 字段差异
+            device_token = result.get("deviceToken") or result.get("uid")
+            if not device_token:
+                print(f"[Passport] 调试信息 - 完整响应: {json.dumps(result, ensure_ascii=False)}")
+                raise KeyError(f"缺少deviceToken/uid字段，响应包含: {list(result.keys())}")
             
             return {
                 "token": result["token"],
                 "hg_id": result["hgId"],
-                "device_token": result["deviceToken"]
+                "device_token": device_token
             }
     
     async def oauth2_grant(self, token: str, device_token: str) -> Dict[str, str]:
@@ -196,6 +265,13 @@ class PassportLogin:
                 raise RuntimeError(f"OAuth2鉴权失败: {data.get('msg')}")
             
             result = data["data"]
+            print(f"[Passport] OAuth2响应字段: {list(result.keys())}")
+            
+            # 验证必需字段
+            if "uid" not in result or "code" not in result:
+                print(f"[Passport] 调试信息 - 完整响应: {json.dumps(result, ensure_ascii=False)}")
+                raise KeyError(f"缺少uid或code字段，响应包含: {list(result.keys())}")
+            
             print(f"[Passport] OAuth2鉴权完成, uid: {result['uid']}")
             
             return {
@@ -255,6 +331,13 @@ class U8Login:
                 raise RuntimeError(f"Unity鉴权失败: {data.get('msg')}")
             
             result = data["data"]
+            print(f"[U8] Unity响应字段: {list(result.keys())}")
+            
+            # 验证必需字段
+            if "token" not in result or "uid" not in result:
+                print(f"[U8] 调试信息 - 完整响应: {json.dumps(result, ensure_ascii=False)}")
+                raise KeyError(f"缺少token或uid字段，响应包含: {list(result.keys())}")
+            
             print(f"[U8] Unity鉴权完成, 游戏UID: {result['uid']}")
             
             return {
@@ -278,11 +361,19 @@ class U8Login:
             if data.get("status") != 0:
                 raise RuntimeError(f"获取服务器列表失败: {data.get('msg')}")
             
-            servers = data["data"]["serverList"]
+            result = data.get("data", {})
+            print(f"[U8] 服务器列表响应字段: {list(result.keys())}")
+            
+            # 支持多种可能的字段名
+            servers = result.get("serverList") or result.get("servers") or []
+            
+            if not servers:
+                print(f"[U8] 调试信息 - 完整响应: {json.dumps(result, ensure_ascii=False)}")
+            
             print(f"[U8] 获取服务器列表: {len(servers)}个服务器")
             
             for srv in servers:
-                print(f"  - {srv['serverId']}: {srv['serverName']}")
+                print(f"  - {srv.get('serverId', 'unknown')}: {srv.get('serverName', 'unknown')}")
             
             return servers
     
@@ -308,6 +399,13 @@ class U8Login:
                 raise RuntimeError(f"获取grant授权码失败: {data.get('msg')}")
             
             result = data["data"]
+            print(f"[U8] Grant响应字段: {list(result.keys())}")
+            
+            # 验证必需字段
+            if "uid" not in result or "code" not in result:
+                print(f"[U8] 调试信息 - 完整响应: {json.dumps(result, ensure_ascii=False)}")
+                raise KeyError(f"缺少uid或code字段，响应包含: {list(result.keys())}")
+            
             print(f"[U8] Grant授权码已获取")
             
             return {
