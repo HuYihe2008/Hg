@@ -367,3 +367,5 @@ endfield-cbt2-dumps/
 
 ./Data/
 Data/GameAssembly.dll
+Client/scan_qrcode.png
+Client/config_cache/*
