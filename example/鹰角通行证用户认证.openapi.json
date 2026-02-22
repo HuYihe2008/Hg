@@ -1,0 +1,891 @@
+{
+  "openapi": "3.0.1",
+  "info": {
+    "title": "鹰角通行证用户认证",
+    "description": "",
+    "version": "1.0.0",
+    "summary": ""
+  },
+  "tags": [],
+  "paths": {
+    "/general/v1/gen_scan/login": {
+      "post": {
+        "summary": "鹰角通行证登录二维码获取",
+        "deprecated": false,
+        "description": "",
+        "tags": [],
+        "parameters": [
+          {
+            "name": "x-devicemodel",
+            "in": "header",
+            "description": "",
+            "required": false,
+            "example": " iPhone13%2C2",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "x-captcha-version",
+            "in": "header",
+            "description": "",
+            "required": false,
+            "example": " 4.0",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "x-devicetype",
+            "in": "header",
+            "description": "",
+            "required": false,
+            "example": " 0",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "x-deviceid",
+            "in": "header",
+            "description": "",
+            "required": false,
+            "example": " 5be137815cd88139ea5afa89d3e3c913",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "x-osver",
+            "in": "header",
+            "description": "",
+            "required": false,
+            "example": " 26.1",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "user-agent",
+            "in": "header",
+            "description": "",
+            "required": false,
+            "example": " Endfield/1 CFNetwork/3860.200.71 Darwin/25.1.0",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "cookie",
+            "in": "header",
+            "description": "",
+            "required": false,
+            "example": " aliyungf_tc=7a0fc3556a621a872e71cf3f0b01ac70c6f8649963e5a124acd305af9b724c39",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {}
+              },
+              "example": {
+                "appCode": "dd7b852d5f1dd9da"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "scanId": {
+                          "type": "string"
+                        },
+                        "scanUrl": {
+                          "type": "string"
+                        },
+                        "enableScanAppList": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "appCode": {
+                                "type": "string"
+                              },
+                              "name": {
+                                "type": "string"
+                              },
+                              "iconUrl": {
+                                "type": "string"
+                              }
+                            },
+                            "required": [
+                              "appCode",
+                              "name",
+                              "iconUrl"
+                            ]
+                          }
+                        }
+                      },
+                      "required": [
+                        "scanId",
+                        "scanUrl",
+                        "enableScanAppList"
+                      ]
+                    },
+                    "msg": {
+                      "type": "string"
+                    },
+                    "status": {
+                      "type": "integer"
+                    },
+                    "type": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "data",
+                    "msg",
+                    "status",
+                    "type"
+                  ]
+                },
+                "examples": {
+                  "1": {
+                    "summary": "成功",
+                    "value": {
+                      "data": {
+                        "scanId": "f1a20a2e9d22b105f81381434d19d8c8",
+                        "scanUrl": "hypergryph://scan_login?scanId=f1a20a2e9d22b105f81381434d19d8c8",
+                        "enableScanAppList": [
+                          {
+                            "appCode": "4ca99fa6b56cc2ba",
+                            "name": "森空岛",
+                            "iconUrl": "https://web.hycdn.cn/biz_toolset/upload/251225/qYm0f7X8LMaLkRRL.jpg"
+                          },
+                          {
+                            "appCode": "dd7b852d5f1dd9da",
+                            "name": "明日方舟：终末地",
+                            "iconUrl": "https://web.hycdn.cn/biz_toolset/upload/251225/7ms6XmvZH1GfZT11.jpg"
+                          }
+                        ]
+                      },
+                      "msg": "OK",
+                      "status": 0,
+                      "type": "A"
+                    }
+                  },
+                  "2": {
+                    "summary": "成功示例",
+                    "value": {
+                      "data": {
+                        "scanId": "a14a9a371343ddc49f53cff5a3e1d444",
+                        "scanUrl": "hypergryph://scan_login?scanId=a14a9a371343ddc49f53cff5a3e1d444",
+                        "enableScanAppList": [
+                          {
+                            "appCode": "4ca99fa6b56cc2ba",
+                            "name": "森空岛",
+                            "iconUrl": "https://web.hycdn.cn/biz_toolset/upload/251225/qYm0f7X8LMaLkRRL.jpg"
+                          },
+                          {
+                            "appCode": "dd7b852d5f1dd9da",
+                            "name": "明日方舟：终末地",
+                            "iconUrl": "https://web.hycdn.cn/biz_toolset/upload/251225/7ms6XmvZH1GfZT11.jpg"
+                          }
+                        ]
+                      },
+                      "msg": "OK",
+                      "status": 0,
+                      "type": "A"
+                    }
+                  }
+                }
+              }
+            },
+            "headers": {}
+          }
+        },
+        "security": []
+      }
+    },
+    "/general/v1/scan_status": {
+      "get": {
+        "summary": "鹰角通行证登录二维码状态获取",
+        "deprecated": false,
+        "description": "",
+        "tags": [],
+        "parameters": [
+          {
+            "name": "scanId",
+            "in": "query",
+            "description": "来自login",
+            "required": false,
+            "example": "f1a20a2e9d22b105f81381434d19d8c8",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "x-devicemodel",
+            "in": "header",
+            "description": "",
+            "required": false,
+            "example": " iPhone13%2C2",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "x-captcha-version",
+            "in": "header",
+            "description": "",
+            "required": false,
+            "example": " 4.0",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "x-devicetype",
+            "in": "header",
+            "description": "",
+            "required": false,
+            "example": " 0",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "user-agent",
+            "in": "header",
+            "description": "",
+            "required": false,
+            "example": " Endfield/1 CFNetwork/3860.200.71 Darwin/25.1.0",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "x-deviceid",
+            "in": "header",
+            "description": "",
+            "required": false,
+            "example": " 5be137815cd88139ea5afa89d3e3c913",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "x-osver",
+            "in": "header",
+            "description": "",
+            "required": false,
+            "example": " 26.1",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "cookie",
+            "in": "header",
+            "description": "",
+            "required": false,
+            "example": " aliyungf_tc=7a0fc3556a621a872e71cf3f0b01ac70c6f8649963e5a124acd305af9b724c39",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "scanCode": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "scanCode"
+                      ]
+                    },
+                    "msg": {
+                      "type": "string"
+                    },
+                    "status": {
+                      "type": "integer"
+                    },
+                    "type": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "data",
+                    "msg",
+                    "status",
+                    "type"
+                  ]
+                },
+                "examples": {
+                  "1": {
+                    "summary": "未扫码",
+                    "value": {
+                      "msg": "未扫码",
+                      "status": 100,
+                      "type": "A"
+                    }
+                  },
+                  "2": {
+                    "summary": "已扫码待确认",
+                    "value": {
+                      "msg": "已扫码待确认",
+                      "status": 101,
+                      "type": "A"
+                    }
+                  },
+                  "3": {
+                    "summary": "扫码成功获取到scanCode",
+                    "value": {
+                      "data": {
+                        "scanCode": "CKCCejPjDK9dhp+LVh2RXWUbRK0W4kXHFSBP4zKqHrLKqe53wpL+5HF70etPBAdSthIKpUhgqwH26j7P79qE7WziLXDber+WhnTd/J6ZI8dZh8ignZrHUHI="
+                      },
+                      "msg": "OK",
+                      "status": 0,
+                      "type": "A"
+                    }
+                  }
+                }
+              }
+            },
+            "headers": {}
+          }
+        },
+        "security": []
+      }
+    },
+    "/user/auth/v1/token_by_scan_code": {
+      "post": {
+        "summary": "鹰角通行证登录二维码token获取",
+        "deprecated": false,
+        "description": "",
+        "tags": [],
+        "parameters": [
+          {
+            "name": "scanId",
+            "in": "query",
+            "description": "",
+            "required": false,
+            "example": "",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "x-devicemodel",
+            "in": "header",
+            "description": "",
+            "required": false,
+            "example": " iPhone13%2C2",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "x-captcha-version",
+            "in": "header",
+            "description": "",
+            "required": false,
+            "example": " 4.0",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "x-devicetype",
+            "in": "header",
+            "description": "",
+            "required": false,
+            "example": " 0",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "x-deviceid",
+            "in": "header",
+            "description": "",
+            "required": false,
+            "example": " 5be137815cd88139ea5afa89d3e3c913",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "x-osver",
+            "in": "header",
+            "description": "",
+            "required": false,
+            "example": " 26.1",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "user-agent",
+            "in": "header",
+            "description": "",
+            "required": false,
+            "example": " Endfield/1 CFNetwork/3860.200.71 Darwin/25.1.0",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "cookie",
+            "in": "header",
+            "description": "",
+            "required": false,
+            "example": " aliyungf_tc=7a0fc3556a621a872e71cf3f0b01ac70c6f8649963e5a124acd305af9b724c39",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "appCode": {
+                    "type": "string"
+                  },
+                  "scanCode": {
+                    "type": "string"
+                  },
+                  "from": {
+                    "type": "integer"
+                  }
+                },
+                "required": [
+                  "appCode",
+                  "scanCode",
+                  "from"
+                ]
+              },
+              "example": {
+                "appCode": "dd7b852d5f1dd9da",
+                "scanCode": "CKCCejPjDK9dhp+LVh2RXWUbRK0W4kXHFSBP4zKqHrLKqe53wpL+5HF70etPBAdSthIKpUhgqwH26j7P79qE7WziLXDber+WhnTd/J6ZI8dZh8ignZrHUHI=",
+                "from": 1
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "token": {
+                          "type": "string"
+                        },
+                        "hgId": {
+                          "type": "string"
+                        },
+                        "deviceToken": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "token",
+                        "hgId",
+                        "deviceToken"
+                      ]
+                    },
+                    "msg": {
+                      "type": "string"
+                    },
+                    "status": {
+                      "type": "integer"
+                    },
+                    "type": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "data",
+                    "msg",
+                    "status",
+                    "type"
+                  ]
+                },
+                "example": {
+                  "data": {
+                    "token": "gfwJ/Hk2NYoW6fm2SqP7d4Sd",
+                    "hgId": "1256195874071",
+                    "deviceToken": "Rs0bUEyMfxGeK840"
+                  },
+                  "msg": "OK",
+                  "status": 0,
+                  "type": "A"
+                }
+              }
+            },
+            "headers": {}
+          }
+        },
+        "security": []
+      }
+    },
+    "/user/oauth2/v2/grant": {
+      "post": {
+        "summary": "鹰角通行证Oauth2鉴权",
+        "deprecated": false,
+        "description": "",
+        "tags": [],
+        "parameters": [
+          {
+            "name": "x-devicemodel",
+            "in": "header",
+            "description": "",
+            "required": false,
+            "example": " iPhone13%2C2",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "x-captcha-version",
+            "in": "header",
+            "description": "",
+            "required": false,
+            "example": " 4.0",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "x-devicetype",
+            "in": "header",
+            "description": "",
+            "required": false,
+            "example": " 0",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "x-deviceid",
+            "in": "header",
+            "description": "",
+            "required": false,
+            "example": " 5be137815cd88139ea5afa89d3e3c913",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "x-osver",
+            "in": "header",
+            "description": "",
+            "required": false,
+            "example": " 26.1",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "user-agent",
+            "in": "header",
+            "description": "",
+            "required": false,
+            "example": " Endfield/1 CFNetwork/3860.200.71 Darwin/25.1.0",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "cookie",
+            "in": "header",
+            "description": "",
+            "required": false,
+            "example": " aliyungf_tc=7a0fc3556a621a872e71cf3f0b01ac70c6f8649963e5a124acd305af9b724c39",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "deviceToken": {
+                    "type": "string"
+                  },
+                  "type": {
+                    "type": "integer"
+                  },
+                  "token": {
+                    "type": "string"
+                  },
+                  "appCode": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "deviceToken",
+                  "type",
+                  "token",
+                  "appCode"
+                ]
+              },
+              "example": {
+                "deviceToken": "Rs0bUEyMfxGeK840",
+                "type": 0,
+                "token": "gfwJ/Hk2NYoW6fm2SqP7d4Sd",
+                "appCode": "dd7b852d5f1dd9da"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "uid": {
+                          "type": "string"
+                        },
+                        "code": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "uid",
+                        "code"
+                      ]
+                    },
+                    "msg": {
+                      "type": "string"
+                    },
+                    "status": {
+                      "type": "integer"
+                    },
+                    "type": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "data",
+                    "msg",
+                    "status",
+                    "type"
+                  ]
+                },
+                "example": {
+                  "data": {
+                    "uid": "1454556009562",
+                    "code": "8tSR0WISlGtZqdl38XB0cgAMDJ0qWr9uUssNm63idWJzpQrt6bSbdvuyyqQL6RkywSEzkbr/hlGX7Y51kn3ENClE1kZ7wPIxnBbpo2yzqDBuQMZL6eia0NK4tUwjpKERlfXfuhsqz3XdfVbMITKFXUJxgdxTD0ZYCpGW8Xk7dPeYzznqKw=="
+                  },
+                  "msg": "OK",
+                  "status": 0,
+                  "type": "A"
+                }
+              }
+            },
+            "headers": {}
+          }
+        },
+        "security": []
+      }
+    },
+    "/user/online/v1/loginout": {
+      "post": {
+        "summary": "结束登录",
+        "deprecated": false,
+        "description": "",
+        "tags": [],
+        "parameters": [
+          {
+            "name": "x-devicemodel",
+            "in": "header",
+            "description": "",
+            "required": false,
+            "example": " iPhone13%2C2",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "x-captcha-version",
+            "in": "header",
+            "description": "",
+            "required": false,
+            "example": " 4.0",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "x-devicetype",
+            "in": "header",
+            "description": "",
+            "required": false,
+            "example": " 0",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "x-deviceid",
+            "in": "header",
+            "description": "",
+            "required": false,
+            "example": " 5be137815cd88139ea5afa89d3e3c913",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "x-osver",
+            "in": "header",
+            "description": "",
+            "required": false,
+            "example": " 26.1",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "user-agent",
+            "in": "header",
+            "description": "",
+            "required": false,
+            "example": " Endfield/1 CFNetwork/3860.200.71 Darwin/25.1.0",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "cookie",
+            "in": "header",
+            "description": "",
+            "required": false,
+            "example": " aliyungf_tc=7a0fc3556a621a872e71cf3f0b01ac70c6f8649963e5a124acd305af9b724c39",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "appCode": {
+                    "type": "string"
+                  },
+                  "type": {
+                    "type": "integer"
+                  },
+                  "token": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "appCode",
+                  "type",
+                  "token"
+                ]
+              },
+              "example": {
+                "appCode": "dd7b852d5f1dd9da",
+                "type": 1,
+                "token": "gfwJ/Hk2NYoW6fm2SqP7d4Sd"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "msg": {
+                      "type": "string"
+                    },
+                    "status": {
+                      "type": "integer"
+                    },
+                    "type": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "msg",
+                    "status",
+                    "type"
+                  ]
+                },
+                "example": {
+                  "msg": "OK",
+                  "status": 0,
+                  "type": "A"
+                }
+              }
+            },
+            "headers": {}
+          }
+        },
+        "security": []
+      }
+    }
+  },
+  "components": {
+    "schemas": {},
+    "responses": {},
+    "securitySchemes": {}
+  },
+  "servers": [],
+  "security": []
+}

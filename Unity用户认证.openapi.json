@@ -1,0 +1,517 @@
+{
+  "openapi": "3.0.1",
+  "info": {
+    "title": "Unity用户认证",
+    "description": "",
+    "version": "1.0.0",
+    "summary": ""
+  },
+  "tags": [],
+  "paths": {
+    "/u8/user/auth/v2/token_by_channel_token": {
+      "post": {
+        "summary": "Unity用户鉴权",
+        "deprecated": false,
+        "description": "",
+        "tags": [],
+        "parameters": [
+          {
+            "name": "x-unity-version",
+            "in": "header",
+            "description": "",
+            "required": false,
+            "example": " 2021.3.34f5",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "user-agent",
+            "in": "header",
+            "description": "",
+            "required": false,
+            "example": " Endfield/1 CFNetwork/3860.200.71 Darwin/25.1.0",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "appCode": {
+                    "type": "string"
+                  },
+                  "channelMasterId": {
+                    "type": "string"
+                  },
+                  "channelToken": {
+                    "type": "string"
+                  },
+                  "type": {
+                    "type": "integer"
+                  },
+                  "platform": {
+                    "type": "integer"
+                  }
+                },
+                "required": [
+                  "appCode",
+                  "channelMasterId",
+                  "channelToken",
+                  "type",
+                  "platform"
+                ]
+              },
+              "example": {
+                "appCode": "4df8f5a7c2ad711b497a",
+                "channelMasterId": "1",
+                "channelToken": "{\"type\":1,\"isSuc\":true,\"code\":\"8tSR0WISlGtZqdl38XB0cgAMDJ0qWr9uUssNm63idWJzpQrt6bSbdvuyyqQL6RkywSEzkbr\\/hlGX7Y51kn3ENClE1kZ7wPIxnBbpo2yzqDBuQMZL6eia0NK4tUwjpKERlfXfuhsqz3XdfVbMITKFXUJxgdxTD0ZYCpGW8Xk7dPeYzznqKw==\"}",
+                "type": 0,
+                "platform": 0
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "token": {
+                          "type": "string"
+                        },
+                        "isNew": {
+                          "type": "boolean"
+                        },
+                        "uid": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "token",
+                        "isNew",
+                        "uid"
+                      ]
+                    },
+                    "msg": {
+                      "type": "string"
+                    },
+                    "status": {
+                      "type": "integer"
+                    },
+                    "type": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "data",
+                    "msg",
+                    "status",
+                    "type"
+                  ]
+                },
+                "example": {
+                  "data": {
+                    "token": "6JGj+qT0BR8cVJJq/327kJbE8iEJgrFYBSQcDNeE9yVMX3Dp6+CVYGwGlnpHubnRkXatUhcCmgewG26QuQ8VqzxoBQ46zts3H+69YLl4MTP5wR25qmoZ0L0E00xfAuMkII+KTnTVFeVwvZyiEB9caHzr6kAN7IisCXYqeuhy18c/F0fEvmeoK1evlGP1z+TKLz2fDpKcJk2Ts/cjST+Ou/ytrAK5iB5+udVwl5b0eh9/0HyiFZuPvOEi4X+DZF4noGoO+ucn8XOsypMDyNmLIhRzWsD03VpqalRUthixNOpaG/Un2osd7hb0FdjhUspsLO6wIhBIqfQLSfhyZCuWBNKd0CRBWXT0b/7XgC0h1NvnR54El/sU/G9e8tOGVGYwuQeQZdfOVzpLLv8WqijzaG1/7KDwb0de/LL2tOUJ4KrQOG77FnSmb5niY6zJ2vvvujbMgjumREVkcI/DjtO2dVBBxPCIFQVJLjm0lSMbKzYK36Vp4qxULNeO3kF8FU27JbU3e0WgwLd7f4jVH7O2H3FNJ23c8t12+MDsGrKqYd0YuPZs3wPfap4gsqW07h9t1maQbT0=",
+                    "isNew": false,
+                    "uid": "501207475"
+                  },
+                  "msg": "OK",
+                  "status": 0,
+                  "type": ""
+                }
+              }
+            },
+            "headers": {}
+          }
+        },
+        "security": []
+      }
+    },
+    "/game/server/v1/server_list": {
+      "post": {
+        "summary": "获取服务器信息",
+        "deprecated": false,
+        "description": "",
+        "tags": [],
+        "parameters": [
+          {
+            "name": "x-unity-version",
+            "in": "header",
+            "description": "",
+            "required": false,
+            "example": " 2021.3.34f5",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "user-agent",
+            "in": "header",
+            "description": "",
+            "required": false,
+            "example": " Endfield/1 CFNetwork/3860.200.71 Darwin/25.1.0",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "token": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "token"
+                ]
+              },
+              "example": {
+                "token": "6JGj+qT0BR8cVJJq/327kJbE8iEJgrFYBSQcDNeE9yVMX3Dp6+CVYGwGlnpHubnRkXatUhcCmgewG26QuQ8VqzxoBQ46zts3H+69YLl4MTP5wR25qmoZ0L0E00xfAuMkII+KTnTVFeVwvZyiEB9caHzr6kAN7IisCXYqeuhy18c/F0fEvmeoK1evlGP1z+TKLz2fDpKcJk2Ts/cjST+Ou/ytrAK5iB5+udVwl5b0eh9/0HyiFZuPvOEi4X+DZF4noGoO+ucn8XOsypMDyNmLIhRzWsD03VpqalRUthixNOpaG/Un2osd7hb0FdjhUspsLO6wIhBIqfQLSfhyZCuWBNKd0CRBWXT0b/7XgC0h1NvnR54El/sU/G9e8tOGVGYwuQeQZdfOVzpLLv8WqijzaG1/7KDwb0de/LL2tOUJ4KrQOG77FnSmb5niY6zJ2vvvujbMgjumREVkcI/DjtO2dVBBxPCIFQVJLjm0lSMbKzYK36Vp4qxULNeO3kF8FU27JbU3e0WgwLd7f4jVH7O2H3FNJ23c8t12+MDsGrKqYd0YuPZs3wPfap4gsqW07h9t1maQbT0="
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "serverList": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "serverId": {
+                                "type": "string"
+                              },
+                              "serverName": {
+                                "type": "string"
+                              },
+                              "serverDomain": {
+                                "type": "string"
+                              },
+                              "defaultChoose": {
+                                "type": "boolean"
+                              },
+                              "roleId": {
+                                "type": "string"
+                              },
+                              "nickname": {
+                                "type": "string"
+                              },
+                              "nickName": {
+                                "type": "string"
+                              },
+                              "level": {
+                                "type": "integer"
+                              },
+                              "extension": {
+                                "type": "string"
+                              }
+                            }
+                          }
+                        }
+                      },
+                      "required": [
+                        "serverList"
+                      ]
+                    },
+                    "msg": {
+                      "type": "string"
+                    },
+                    "status": {
+                      "type": "integer"
+                    },
+                    "type": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "data",
+                    "msg",
+                    "status",
+                    "type"
+                  ]
+                },
+                "example": {
+                  "data": {
+                    "serverList": [
+                      {
+                        "serverId": "1",
+                        "serverName": "China",
+                        "serverDomain": "[{\"host\": \"beyond-cn.hypergryph.com\", \"port\": 30000}, {\"host\": \"beyond-cn2.hypergryph.com\", \"port\": 30000}]",
+                        "defaultChoose": true,
+                        "roleId": "1920474528",
+                        "nickname": "yido酱喵",
+                        "nickName": "yido酱喵",
+                        "level": 51,
+                        "extension": "{\"offsetSeconds\": 28800}"
+                      }
+                    ]
+                  },
+                  "msg": "OK",
+                  "status": 0,
+                  "type": ""
+                }
+              }
+            },
+            "headers": {}
+          }
+        },
+        "security": []
+      }
+    },
+    "/u8/user/auth/v2/grant": {
+      "post": {
+        "summary": "Unity鉴权",
+        "deprecated": false,
+        "description": "",
+        "tags": [],
+        "parameters": [
+          {
+            "name": "x-unity-version",
+            "in": "header",
+            "description": "",
+            "required": false,
+            "example": " 2021.3.34f5",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "user-agent",
+            "in": "header",
+            "description": "",
+            "required": false,
+            "example": " Endfield/1 CFNetwork/3860.200.71 Darwin/25.1.0",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "token": {
+                    "type": "string"
+                  },
+                  "type": {
+                    "type": "integer"
+                  },
+                  "platform": {
+                    "type": "integer"
+                  }
+                },
+                "required": [
+                  "token",
+                  "type",
+                  "platform"
+                ]
+              },
+              "example": {
+                "token": "6JGj+qT0BR8cVJJq/327kJbE8iEJgrFYBSQcDNeE9yVMX3Dp6+CVYGwGlnpHubnRkXatUhcCmgewG26QuQ8VqzxoBQ46zts3H+69YLl4MTP5wR25qmoZ0L0E00xfAuMkII+KTnTVFeVwvZyiEB9caHzr6kAN7IisCXYqeuhy18c/F0fEvmeoK1evlGP1z+TKLz2fDpKcJk2Ts/cjST+Ou/ytrAK5iB5+udVwl5b0eh9/0HyiFZuPvOEi4X+DZF4noGoO+ucn8XOsypMDyNmLIhRzWsD03VpqalRUthixNOpaG/Un2osd7hb0FdjhUspsLO6wIhBIqfQLSfhyZCuWBNKd0CRBWXT0b/7XgC0h1NvnR54El/sU/G9e8tOGVGYwuQeQZdfOVzpLLv8WqijzaG1/7KDwb0de/LL2tOUJ4KrQOG77FnSmb5niY6zJ2vvvujbMgjumREVkcI/DjtO2dVBBxPCIFQVJLjm0lSMbKzYK36Vp4qxULNeO3kF8FU27JbU3e0WgwLd7f4jVH7O2H3FNJ23c8t12+MDsGrKqYd0YuPZs3wPfap4gsqW07h9t1maQbT0=",
+                "type": 0,
+                "platform": 0
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "uid": {
+                          "type": "string"
+                        },
+                        "code": {
+                          "type": "string"
+                        },
+                        "token": {
+                          "type": "string"
+                        },
+                        "isMinor": {
+                          "type": "boolean"
+                        },
+                        "isAuthenticate": {
+                          "type": "boolean"
+                        }
+                      },
+                      "required": [
+                        "uid",
+                        "code",
+                        "token",
+                        "isMinor",
+                        "isAuthenticate"
+                      ]
+                    },
+                    "msg": {
+                      "type": "string"
+                    },
+                    "status": {
+                      "type": "integer"
+                    },
+                    "type": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "data",
+                    "msg",
+                    "status",
+                    "type"
+                  ]
+                },
+                "example": {
+                  "data": {
+                    "uid": "501207475",
+                    "code": "UfrRwzL+1mBRuCFH2UnmR4eovaSHUDMga9YOOZgq2yJUAqyIJ6tYKlaCsMamJIOY4b3twpzhjVTrM5L6yVkiBzAWbmNTsO8nsQnJXdWK721Qi+pmyQoS6+2U2eHYbeynrBpMD2CoqDPCarfFhSPoCOwn/pTPxvKuuIXZA/0LwqM6a/kVV5ri3W8oPmQlayQ/Bd1gGwEy82orIQt879C107j9JY22rK2YKIZgOxcbd3nqiJypyB5S+WoQxualYxCbc4Zqf0CxouFlw4/cDRr3ODDD3rMEjToCggFCDWlGzdNQzzBHrbQoBY5e3BiW6H2SxzJI05UNxeqgkPyQRtbfJCfRNwqS+vFl0QevSN2pwFBkcyxZTzrB9brQ9EuvkIdW46vuggJdI8fCDhotqGx63yt2H6zJYh9cXJWnMs2jX16I9WI52v7rYsMIMNfB6nlKxV8ewBPHtK5DB5n4Jyrq+WbRqf2PC7yw498bEwmOIBgAEA+Ya3EGq8e0Poh3QmF6B3uhYPwSxptL9vAbmNtlc/cOvI0zIDvizv34/zaUSM3Y",
+                    "token": "jydHDV25wKd3eUfxlLuy484HlxQiU0HnoF5YhXIIx0BZK/wuvuqtnUTjr63oPuh+qvgo7YeTZJ+TrC4kiUBNl9bGIJwWofwO3jBQb39J0yfVi2iqxIFkuPxL1yV3DZQamgbwvSmnKwee1LLqk5SIHTYcIrb02TMZn85PMDl/QkToHfpTX4J9Th4z+usMS1/wONjt/rr/yGvPiiqqOKEr8Aqwdq/LDgwIxHYi50Y0c+7hMCdlfofk4cj5SSo94Ga27wCvEuWCWC1LnZCaOyXcH8f8Ela28ruATJYjvEuQTroejWHoeWAwuOJvOSuS54LmVMHXRFV+yfStAHC0r9jfzR516sxuhh0bj3mezEMSysQwCMy3JXHa3bmcpbBbtYnHMyqtriDO8Eox0PSfD3sLvHTsrGJMY574L1fwR5k2KFQsi+z/owmOsonPz13O9hyPdMlPOzWW/qeMlPy2QF+IvuylJdmeA7OGItoSXoGBHWd4UfzWDz7hZqhD9/DMh3LuXXubbGG3Au9lCCgOkyDlWWUoUFpbL1765We9V58RlNvB",
+                    "isMinor": false,
+                    "isAuthenticate": true
+                  },
+                  "msg": "OK",
+                  "status": 0,
+                  "type": ""
+                }
+              }
+            },
+            "headers": {}
+          }
+        },
+        "security": []
+      }
+    },
+    "/game/role/v1/confirm_server": {
+      "post": {
+        "summary": "确认选择登陆服务器",
+        "deprecated": false,
+        "description": "",
+        "tags": [],
+        "parameters": [
+          {
+            "name": "x-unity-version",
+            "in": "header",
+            "description": "",
+            "required": false,
+            "example": " 2021.3.34f5",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "user-agent",
+            "in": "header",
+            "description": "",
+            "required": false,
+            "example": " Endfield/1 CFNetwork/3860.200.71 Darwin/25.1.0",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "token": {
+                    "type": "string"
+                  },
+                  "serverId": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "token",
+                  "serverId"
+                ]
+              },
+              "example": {
+                "token": "6JGj+qT0BR8cVJJq/327kJbE8iEJgrFYBSQcDNeE9yVMX3Dp6+CVYGwGlnpHubnRkXatUhcCmgewG26QuQ8VqzxoBQ46zts3H+69YLl4MTP5wR25qmoZ0L0E00xfAuMkII+KTnTVFeVwvZyiEB9caHzr6kAN7IisCXYqeuhy18c/F0fEvmeoK1evlGP1z+TKLz2fDpKcJk2Ts/cjST+Ou/ytrAK5iB5+udVwl5b0eh9/0HyiFZuPvOEi4X+DZF4noGoO+ucn8XOsypMDyNmLIhRzWsD03VpqalRUthixNOpaG/Un2osd7hb0FdjhUspsLO6wIhBIqfQLSfhyZCuWBNKd0CRBWXT0b/7XgC0h1NvnR54El/sU/G9e8tOGVGYwuQeQZdfOVzpLLv8WqijzaG1/7KDwb0de/LL2tOUJ4KrQOG77FnSmb5niY6zJ2vvvujbMgjumREVkcI/DjtO2dVBBxPCIFQVJLjm0lSMbKzYK36Vp4qxULNeO3kF8FU27JbU3e0WgwLd7f4jVH7O2H3FNJ23c8t12+MDsGrKqYd0YuPZs3wPfap4gsqW07h9t1maQbT0=",
+                "serverId": "1"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "msg": {
+                      "type": "string"
+                    },
+                    "status": {
+                      "type": "integer"
+                    },
+                    "type": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "msg",
+                    "status",
+                    "type"
+                  ]
+                },
+                "example": {
+                  "msg": "OK",
+                  "status": 0,
+                  "type": ""
+                }
+              }
+            },
+            "headers": {}
+          }
+        },
+        "security": []
+      }
+    }
+  },
+  "components": {
+    "schemas": {},
+    "responses": {},
+    "securitySchemes": {}
+  },
+  "servers": [],
+  "security": []
+}
