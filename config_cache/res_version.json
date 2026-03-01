@@ -1,0 +1,18 @@
+{
+  "resources": [
+    {
+      "name": "main",
+      "version": "5746014-30",
+      "path": "https://beyond.hycdn.cn/6LL0KJuqHBVz33WK/1.0/resource/Windows/main/5746014-30_GOzcIfLfQpc2cvLH/files"
+    },
+    {
+      "name": "initial",
+      "version": "5746014-30",
+      "path": "https://beyond.hycdn.cn/6LL0KJuqHBVz33WK/1.0/resource/Windows/initial/5746014-30_MPMvzRtmIrrrS52g/files"
+    }
+  ],
+  "configs": "{\"kick_flag\":false}",
+  "res_version": "initial_5746014-30_main_5746014-30",
+  "patch_index_path": "",
+  "domain": "https://beyond.hycdn.cn"
+}

@@ -45,11 +45,8 @@ def encode_tag(field_number: int, wire_type: int) -> bytes:
     return encode_varint((field_number << 3) | wire_type)
 
 
-def encode_string(field_number: int, value: str | bytes) -> bytes:
-    if isinstance(value, str):
-        raw = value.encode("utf-8")
-    else:
-        raw = value  # bytes
+def encode_string(field_number: int, value: str) -> bytes:
+    raw = value.encode("utf-8")
     return encode_tag(field_number, 2) + encode_varint(len(raw)) + raw
 
 
@@ -121,83 +118,6 @@ def _resolve_online_res_version(ctx: dict[str, Any]) -> str:
     return str(ctx.get("res_version") or _resolve_launcher_version(ctx))
 
 
-def generate_rsa_keypair() -> tuple[bytes, bytes]:
-    """
-    生成 RSA 密钥对
-    
-    Returns:
-        (公钥 PEM, 私钥 PEM) 字节串
-    """
-    from cryptography.hazmat.primitives.asymmetric import rsa
-    from cryptography.hazmat.primitives import serialization
-    from cryptography.hazmat.backends import default_backend
-    
-    private_key = rsa.generate_private_key(
-        public_exponent=65537,
-        key_size=2048,
-        backend=default_backend()
-    )
-    
-    public_key = private_key.public_key()
-    
-    public_pem = public_key.public_bytes(
-        encoding=serialization.Encoding.PEM,
-        format=serialization.PublicFormat.SubjectPublicKeyInfo
-    )
-    
-    private_pem = private_key.private_bytes(
-        encoding=serialization.Encoding.PEM,
-        format=serialization.PrivateFormat.PKCS8,
-        encryption_algorithm=serialization.NoEncryption()
-    )
-    
-    return public_pem, private_pem
-
-
-def build_device_info(ctx: dict[str, Any]) -> bytes:
-    """
-    构建 DEVICE_INFO 消息 (field 17)
-    根据 Il2CppInspector 解析的 DEVICE_INFO 结构
-    """
-    device_info = ctx.get("device_info", {})
-    
-    # 从上下文或配置中获取设备信息
-    device_id = str(device_info.get("device_id", "5be137815cd88139ea5afa89d3e3c913"))
-    os = str(device_info.get("os", "Windows"))
-    os_ver = str(device_info.get("os_ver", "10.0.19045"))
-    brand = str(device_info.get("brand", "Microsoft"))
-    model = str(device_info.get("model", "PC"))
-    simulator = str(device_info.get("simulator", ""))
-    network = str(device_info.get("network", "Ethernet"))
-    carrier = str(device_info.get("carrier", ""))
-    language = str(device_info.get("language", "zh-CN"))
-    country_iso_code = str(device_info.get("country_iso_code", "CN"))
-    ipv4 = int(device_info.get("ipv4", 0))
-    client_res_version = str(device_info.get("client_res_version", ctx.get("res_version", "1.0.14")))
-    
-    msg = b""
-    msg += encode_string(1, device_id)
-    msg += encode_string(2, os)
-    msg += encode_string(3, os_ver)
-    msg += encode_string(4, brand)
-    msg += encode_string(5, model)
-    if simulator:
-        msg += encode_string(6, simulator)
-    if network:
-        msg += encode_string(7, network)
-    if carrier:
-        msg += encode_string(8, carrier)
-    if language:
-        msg += encode_string(9, language)
-    if country_iso_code:
-        msg += encode_string(10, country_iso_code)
-    if ipv4 != 0:
-        msg += encode_uint64(11, ipv4)
-    msg += encode_string(12, client_res_version)
-    
-    return msg
-
-
 def build_cs_login_body(ctx: dict[str, Any]) -> tuple[bytes, dict[str, Any]]:
     launcher_version = _resolve_launcher_version(ctx)
     online_res_version = _resolve_online_res_version(ctx)
@@ -209,55 +129,25 @@ def build_cs_login_body(ctx: dict[str, Any]) -> tuple[bytes, dict[str, Any]]:
     env = int(ctx.get("env", 2))
     client_language = int(ctx.get("client_language", 0))
     channel = str(ctx.get("channel") or "official")
-    
-    # 获取或生成 RSA 密钥对
-    client_public_key = ctx.get("client_public_key")
-    client_private_key = ctx.get("client_private_key")
-    
-    if client_public_key is None:
-        client_public_key, client_private_key = generate_rsa_keypair()
-        ctx["client_public_key"] = client_public_key
-        ctx["client_private_key"] = client_private_key
 
     msg = b""
-    # 按字段号顺序编码（protobuf 标准要求）
-    # field 1: A14 (string) - channel 渠道
-    msg += encode_string(1, channel)
-    # field 2: A7 (string) - online_res_version 资源版本
-    msg += encode_string(2, online_res_version)
-    # field 3: A6 (string) - launcher_version 包体版本
-    msg += encode_string(3, launcher_version)
-    # field 4: A13 (string) - 未知字符串
-    msg += encode_string(4, "")
-    # field 5: A1 (string) - uid
-    msg += encode_string(5, uid)
-    # field 6: A2 (string) - token
-    msg += encode_string(6, token)
-    # field 7: A8 (ByteString) - client_public_key RSA 公钥
-    public_key_str = client_public_key.decode('utf-8')
-    logger.info(f"[SRSA] RSA 公钥长度：{len(public_key_str)}")
-    msg += encode_string(7, public_key_str)
-    # field 8: A9 (CLIENT_PLATFORM_TYPE) - platform_id
+    if channel:
+        msg += encode_string(1, channel)
+    if online_res_version:
+        msg += encode_string(2, online_res_version)
+    if launcher_version:
+        msg += encode_string(3, launcher_version)
+    if uid:
+        msg += encode_string(5, uid)
+    if token:
+        msg += encode_string(6, token)
+
     msg += encode_uint32(8, platform_id)
-    # field 9: A10 (AREA_TYPE) - area
-    msg += encode_uint32(9, area)
-    # field 10: A12 (int) - 未知整数
-    msg += encode_uint32(10, 0)
-    # field 11: A5 (ulong) - 未知
-    msg += encode_uint64(11, 0)
-    # field 12: A11 (ENV_TYPE) - env
+    if area != 0:
+        msg += encode_uint32(9, area)
     msg += encode_uint32(12, env)
-    # field 13: A21 (int) - channel_id
-    msg += encode_uint32(13, 1)
-    # field 14: A22 (int) - sub_channel
-    msg += encode_uint32(14, 0)
-    # field 15: A4 (int) - 未知整数
-    msg += encode_uint32(15, 0)
-    # field 16: ClientLanguage (int) - 客户端语言
-    msg += encode_uint32(16, client_language)
-    # field 17: A23 (DEVICE_INFO) - 设备信息
-    device_info_bytes = build_device_info(ctx)
-    msg += encode_string(17, device_info_bytes)
+    if client_language != 0:
+        msg += encode_uint32(16, client_language)
 
     meta = {
         "channel": channel,
@@ -269,8 +159,6 @@ def build_cs_login_body(ctx: dict[str, Any]) -> tuple[bytes, dict[str, Any]]:
         "area": area,
         "env": env,
         "client_language": client_language,
-        "public_key_len": len(public_key_str),
-        "device_info_len": len(device_info_bytes),
         "body_len": len(msg),
     }
     return msg, meta
@@ -356,14 +244,12 @@ class TCPClient:
         grant_code: str,
         srsa_bridge: Optional[SRSABridge] = None,
         timeout: float = 30.0,
-        config_ctx: Optional[dict] = None,
     ):
         self.host = host
         self.port = port
         self.grant_code = grant_code
         self.srsa_bridge = srsa_bridge
         self.timeout = timeout
-        self.config_ctx = config_ctx or {}
 
         self.reader: Optional[asyncio.StreamReader] = None
         self.writer: Optional[asyncio.StreamWriter] = None
@@ -399,21 +285,14 @@ class TCPClient:
         await self.writer.drain()
 
     async def send_login_request(self) -> dict[str, Any]:
-        # 尝试使用不同的 token 格式
-        # 根据 HandleCsLogin.cs，服务器使用 req.Token 查找账户
-        # 可能需要使用 U8 token 而不是 grant_code
         ctx = {
             "uid": "",
-            "token": self.grant_code,  # 先尝试使用 grant_code
+            "token": self.grant_code,
             "grant_code": self.grant_code,
             "platform_id": 3,
             "area": 2,
             "env": 2,
         }
-        # 合并配置上下文
-        ctx.update(self.config_ctx)
-        
-        logger.info(f"[TCP] 使用 grant_code 作为 token (长度：{len(self.grant_code)})")
         cs_body, body_meta = build_cs_login_body(ctx)
 
         msgid = 13
@@ -430,28 +309,7 @@ class TCPClient:
             "seq_id": seq_id,
         }
 
-        logger.info(f"[TCP] 发送登录包：msgid={msgid}, seq={seq_id}, len={len(packet)}")
-        logger.info(f"[TCP] CsLogin 字段：{body_meta}")
-        logger.info(f"[TCP] CsBody 完整十六进制：{cs_body.hex()}")
-        
-        # 详细解析并打印每个字段
-        logger.info("[TCP] CsLogin 字段详细解析：")
-        try:
-            for field_no, wire, value in iter_fields(cs_body):
-                if wire == 2 and isinstance(value, bytes):
-                    # 尝试解码为字符串
-                    try:
-                        str_val = value.decode('utf-8')
-                        if len(str_val) > 100:
-                            str_val = str_val[:100] + "..."
-                        logger.info(f"  Field {field_no} (string/bytes, len={len(value)}): {str_val}")
-                    except:
-                        logger.info(f"  Field {field_no} (bytes, len={len(value)}): {value[:32].hex()}...")
-                elif wire == 0:
-                    logger.info(f"  Field {field_no} (varint): {value}")
-        except Exception as e:
-            logger.warning(f"[TCP] 字段解析失败: {e}")
-        
+        logger.info(f"[TCP] 发送登录包: msgid={msgid}, seq={seq_id}, len={len(packet)}")
         await self._write(packet)
 
         header = await self._read_exact(3)
@@ -462,14 +320,12 @@ class TCPClient:
 
         parsed["resp_len"] = len(resp)
         parsed["resp_hex_head"] = resp[:32].hex()
-        parsed["resp_hex_full"] = resp.hex()
         parsed["resp_head_len"] = head_len
         parsed["resp_body_len"] = body_len
 
         if len(resp) >= 3 + head_len + body_len:
             resp_body = resp[3 + head_len:3 + head_len + body_len]
             parsed["resp_body_hex_head"] = resp_body[:32].hex()
-            parsed["resp_body_hex_full"] = resp_body.hex()
 
             if _is_srsa_encrypted(resp_body) and self.srsa_bridge is not None:
                 parsed["response_encrypted"] = True
@@ -480,11 +336,7 @@ class TCPClient:
                 except Exception as e:
                     parsed["decrypt_error"] = str(e)
 
-            # 先尝试解析错误响应
             error_info = _parse_error_response(resp_body)
-            logger.info(f"[TCP] 响应解析结果：error_info={error_info}")
-            logger.info(f"[TCP] 响应完整十六进制：{resp_body.hex()}")
-            
             if error_info.get("error_code") is not None:
                 err_code = int(error_info["error_code"])
                 parsed["error_code"] = err_code
@@ -494,8 +346,6 @@ class TCPClient:
                 sc_login = _parse_sc_login(resp_body)
                 if sc_login:
                     parsed["sc_login"] = sc_login
-                else:
-                    logger.warning(f"[TCP] 无法解析响应：{resp_body.hex()}")
 
         self.login_parsed = parsed
         return parsed
@@ -512,9 +362,8 @@ async def tcp_login_flow(
     port: int,
     grant_code: str,
     srsa_bridge: Optional[SRSABridge] = None,
-    config_ctx: Optional[dict] = None,
 ) -> Optional[TCPClient]:
-    client = TCPClient(host, port, grant_code, srsa_bridge, config_ctx=config_ctx)
+    client = TCPClient(host, port, grant_code, srsa_bridge)
 
     if not await client.connect():
         return None
