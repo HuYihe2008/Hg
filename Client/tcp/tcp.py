@@ -14,6 +14,9 @@ import logging
 import struct
 from typing import Any, Iterator, Optional
 
+from cryptography.hazmat.primitives import serialization
+from cryptography.hazmat.primitives.asymmetric import rsa
+
 from .srsa_bridge import SRSABridge
 
 logger = logging.getLogger(__name__)
@@ -48,6 +51,10 @@ def encode_tag(field_number: int, wire_type: int) -> bytes:
 def encode_string(field_number: int, value: str) -> bytes:
     raw = value.encode("utf-8")
     return encode_tag(field_number, 2) + encode_varint(len(raw)) + raw
+
+
+def encode_bytes(field_number: int, value: bytes) -> bytes:
+    return encode_tag(field_number, 2) + encode_varint(len(value)) + value
 
 
 def encode_bool(field_number: int, value: bool) -> bytes:
@@ -118,47 +125,110 @@ def _resolve_online_res_version(ctx: dict[str, Any]) -> str:
     return str(ctx.get("res_version") or _resolve_launcher_version(ctx))
 
 
-def build_cs_login_body(ctx: dict[str, Any]) -> tuple[bytes, dict[str, Any]]:
-    launcher_version = _resolve_launcher_version(ctx)
-    online_res_version = _resolve_online_res_version(ctx)
+def _resolve_branch_tag(ctx: dict[str, Any], launcher_version: str) -> str:
+    _ = launcher_version
+    return str(ctx.get("branch_tag") or ctx.get("a14") or "prod-obt-official")
+
+
+def _resolve_login_a1_a2(ctx: dict[str, Any]) -> tuple[str, str]:
+    if "a1" in ctx or "a2" in ctx:
+        return str(ctx.get("a1") or ""), str(ctx.get("a2") or "")
 
     uid = str(ctx.get("uid") or "")
     token = str(ctx.get("token") or ctx.get("grant_code") or "")
+    return uid, token
+
+
+def generate_rsa_keypair() -> tuple[str, str]:
+    """生成登录使用的RSA密钥对（PEM字符串）"""
+    private_key = rsa.generate_private_key(public_exponent=65537, key_size=2048)
+    private_pem = private_key.private_bytes(
+        encoding=serialization.Encoding.PEM,
+        format=serialization.PrivateFormat.PKCS8,
+        encryption_algorithm=serialization.NoEncryption(),
+    ).decode("utf-8")
+    public_pem = private_key.public_key().public_bytes(
+        encoding=serialization.Encoding.PEM,
+        format=serialization.PublicFormat.SubjectPublicKeyInfo,
+    ).decode("utf-8")
+    return public_pem, private_pem
+
+
+def build_cs_login_body(ctx: dict[str, Any]) -> tuple[bytes, dict[str, Any]]:
+    launcher_version = _resolve_launcher_version(ctx)
+    online_res_version = _resolve_online_res_version(ctx)
+    branch_tag = _resolve_branch_tag(ctx, launcher_version)
+
+    a13_value = str(ctx.get("a13") or "")
+    a1_value, a2_value = _resolve_login_a1_a2(ctx)
+
+    uid = str(ctx.get("uid") or a1_value or "")
+    token = str(ctx.get("token") or ctx.get("grant_code") or a2_value or "")
     platform_id = int(ctx.get("platform_id", 3))
     area = int(ctx.get("area", 2))
     env = int(ctx.get("env", 2))
+    a12_value = int(ctx.get("a12", 2))
+    a5_value = int(ctx.get("a5", 0))
+    a21_value = int(ctx.get("a21", 1))
+    a22_value = int(ctx.get("a22", 1))
+    a4_value = int(ctx.get("a4", 0))
     client_language = int(ctx.get("client_language", 0))
-    channel = str(ctx.get("channel") or "official")
+
+    client_public_key_bytes = ctx.get("client_public_key_bytes")
+    if not isinstance(client_public_key_bytes, (bytes, bytearray)):
+        client_public_key_str = str(ctx.get("client_public_key") or "")
+        client_public_key_bytes = client_public_key_str.encode("utf-8") if client_public_key_str else b""
+    client_public_key_bytes = bytes(client_public_key_bytes)
 
     msg = b""
-    if channel:
-        msg += encode_string(1, channel)
+    # 对齐生产服 MSG_A1 字段（Campofinale.proto.new）
+    if branch_tag:
+        msg += encode_string(1, branch_tag)
     if online_res_version:
         msg += encode_string(2, online_res_version)
     if launcher_version:
         msg += encode_string(3, launcher_version)
-    if uid:
-        msg += encode_string(5, uid)
-    if token:
-        msg += encode_string(6, token)
+    if a13_value:
+        msg += encode_string(4, a13_value)
+    if a1_value:
+        msg += encode_string(5, a1_value)
+    if a2_value:
+        msg += encode_string(6, a2_value)
+    if client_public_key_bytes:
+        msg += encode_bytes(7, client_public_key_bytes)
 
     msg += encode_uint32(8, platform_id)
     if area != 0:
         msg += encode_uint32(9, area)
+    msg += encode_uint32(10, a12_value)
+    if a5_value != 0:
+        msg += encode_uint64(11, a5_value)
     msg += encode_uint32(12, env)
-    if client_language != 0:
-        msg += encode_uint32(16, client_language)
+    msg += encode_uint32(13, a21_value)
+    msg += encode_uint32(14, a22_value)
+    if a4_value != 0:
+        msg += encode_uint32(15, a4_value)
+    msg += encode_uint32(16, client_language)
 
     meta = {
-        "channel": channel,
+        "a14": branch_tag,
         "client_res_version": online_res_version,
         "client_version": launcher_version,
+        "a13": a13_value,
+        "a1_len": len(a1_value),
+        "a2_len": len(a2_value),
         "uid": uid,
         "token_len": len(token),
         "platform_id": platform_id,
         "area": area,
+        "a12": a12_value,
+        "a5": a5_value,
         "env": env,
+        "a21": a21_value,
+        "a22": a22_value,
+        "a4": a4_value,
         "client_language": client_language,
+        "client_public_key_len": len(client_public_key_bytes),
         "body_len": len(msg),
     }
     return msg, meta
@@ -242,14 +312,28 @@ class TCPClient:
         host: str,
         port: int,
         grant_code: str,
+        uid: str = "",
         srsa_bridge: Optional[SRSABridge] = None,
+        config_ctx: Optional[dict[str, Any]] = None,
         timeout: float = 30.0,
     ):
         self.host = host
         self.port = port
         self.grant_code = grant_code
+        self.uid = uid
         self.srsa_bridge = srsa_bridge
+        self.config_ctx = dict(config_ctx or {})
         self.timeout = timeout
+
+        # 生产服通常会携带 client_public_key，未提供时自动生成
+        if not self.config_ctx.get("client_public_key"):
+            try:
+                public_key, private_key = generate_rsa_keypair()
+                self.config_ctx["client_public_key"] = public_key
+                self.config_ctx.setdefault("client_public_key_bytes", public_key.encode("utf-8"))
+                self.config_ctx.setdefault("client_private_key", private_key)
+            except Exception as exc:
+                logger.warning(f"[TCP] RSA密钥生成失败，继续不带client_public_key: {exc}")
 
         self.reader: Optional[asyncio.StreamReader] = None
         self.writer: Optional[asyncio.StreamWriter] = None
@@ -285,15 +369,26 @@ class TCPClient:
         await self.writer.drain()
 
     async def send_login_request(self) -> dict[str, Any]:
-        ctx = {
-            "uid": "",
-            "token": self.grant_code,
-            "grant_code": self.grant_code,
-            "platform_id": 3,
-            "area": 2,
-            "env": 2,
-        }
-        cs_body, body_meta = build_cs_login_body(ctx)
+        ctx = dict(self.config_ctx)
+        ctx.setdefault("uid", self.uid)
+        ctx.setdefault("token", self.grant_code)
+        ctx.setdefault("grant_code", self.grant_code)
+        ctx.setdefault("platform_id", 3)
+        ctx.setdefault("area", 1)
+        ctx.setdefault("env", 2)
+
+        cs_body_plain, body_meta = build_cs_login_body(ctx)
+        cs_body = cs_body_plain
+        encrypted = False
+        encrypt_error = None
+
+        if self.srsa_bridge is not None:
+            try:
+                cs_body = self.srsa_bridge.encrypt_login_body(cs_body_plain)
+                encrypted = True
+            except Exception as exc:
+                encrypt_error = str(exc)
+                logger.error(f"[TCP] SRSA加密失败，将回退明文发送: {exc}")
 
         msgid = 13
         seq_id = self._seq_id
@@ -303,11 +398,16 @@ class TCPClient:
         parsed: dict[str, Any] = {
             "send_mode": "hg_protocol",
             "cs_login_meta": body_meta,
+            "request_encrypted": encrypted,
+            "request_plain_len": len(cs_body_plain),
+            "request_body_len": len(cs_body),
             "packet_len": len(packet),
             "packet_hex_head": packet[:32].hex(),
             "msgid": msgid,
             "seq_id": seq_id,
         }
+        if encrypt_error:
+            parsed["encrypt_error"] = encrypt_error
 
         logger.info(f"[TCP] 发送登录包: msgid={msgid}, seq={seq_id}, len={len(packet)}")
         await self._write(packet)
@@ -361,9 +461,18 @@ async def tcp_login_flow(
     host: str,
     port: int,
     grant_code: str,
+    uid: str = "",
     srsa_bridge: Optional[SRSABridge] = None,
+    config_ctx: Optional[dict[str, Any]] = None,
 ) -> Optional[TCPClient]:
-    client = TCPClient(host, port, grant_code, srsa_bridge)
+    client = TCPClient(
+        host=host,
+        port=port,
+        grant_code=grant_code,
+        uid=uid,
+        srsa_bridge=srsa_bridge,
+        config_ctx=config_ctx,
+    )
 
     if not await client.connect():
         return None

@@ -7,6 +7,7 @@ import asyncio
 import json
 import logging
 import argparse
+import re
 from pathlib import Path
 from typing import Optional
 
@@ -121,8 +122,33 @@ class GameClient:
                 # 从配置结果中获取版本信息
                 if self.config_result.launcher_version:
                     config_ctx["client_version"] = self.config_result.launcher_version.get("version", "1.0.14")
+
+                    pkg = self.config_result.launcher_version.get("pkg") or {}
+                    config_ctx["a22"] = int(pkg.get("sub_channel") or 1)
+
+                    # 从包URL提取分支标签（例如: 1.0.14_bJBg3b40frDq9bOB）
+                    try:
+                        packs = pkg.get("packs") or []
+                        if packs:
+                            pack_url = str(packs[0].get("url") or "")
+                            m = re.search(r"/Windows/([^/]+)/packs/", pack_url)
+                            if m:
+                                config_ctx["a14"] = m.group(1)
+                    except Exception:
+                        pass
+
                 if self.config_result.res_version:
-                    config_ctx["res_version"] = self.config_result.res_version.get("resourceVersion", "1.0.14")
+                    config_ctx["res_version"] = (
+                        self.config_result.res_version.get("resourceVersion")
+                        or self.config_result.res_version.get("res_version")
+                        or self.config_result.res_version.get("version")
+                        or "1.0.14"
+                    )
+
+            # 默认登录上下文（可被上面的配置覆盖）
+            config_ctx.setdefault("a14", "prod-obt-official")
+            config_ctx.setdefault("a21", 1)
+            config_ctx.setdefault("a22", 1)
             
             # 建立 TCP 连接并登录
             logger.info(f"[Client] 连接到 TCP 服务器...")
@@ -130,6 +156,7 @@ class GameClient:
                 host=self.login_session.server_host,
                 port=self.login_session.server_port,
                 grant_code=self.login_session.u8_grant_code,
+                uid=self.login_session.u8_uid,
                 srsa_bridge=self.srsa_bridge,
                 config_ctx=config_ctx
             )
