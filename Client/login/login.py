@@ -38,16 +38,14 @@ SERVER_LIST_URL = f"{U8_DOMAIN}/game/server/v1/server_list"
 U8_GRANT_URL = f"{U8_DOMAIN}/u8/user/auth/v2/grant"
 CONFIRM_SERVER_URL = f"{U8_DOMAIN}/game/role/v1/confirm_server"
 
-# 标准请求头
+# 标准请求头（Windows PC端）
 HEADERS = {
-    "User-Agent": "Endfield/1 CFNetwork/3860.200.71 Darwin/25.1.0",
-    "Content-Type": "application/json",
-    # 鹰角服务器要求的设备信息header
-    "x-devicemodel": "iPhone13,2",
-    "x-captcha-version": "4.0",
-    "x-devicetype": "0",
-    "x-deviceid": "5be137815cd88139ea5afa89d3e3c913",
-    "x-osver": "26.1",
+    "User-Agent": "Mozilla/5.0",
+    # PC端设备信息header
+    "X-DeviceId": "9d0cb8406dcd90762bd2db3b546445cb",
+    "X-DeviceId2": "9d0cb8406dcd90762bd2db3b546445cb",
+    "X-DeviceModel": "DESKTOP-M3AH3Q7",
+    "X-DeviceType": "2",
 }
 
 
@@ -144,7 +142,7 @@ class PassportLogin:
         第1步：生成扫码登录二维码
         返回 scanId
         """
-        async with httpx.AsyncClient(timeout=self.timeout) as client:
+        async with httpx.AsyncClient(timeout=self.timeout, proxy=None) as client:
             resp = await client.post(
                 SCAN_LOGIN_URL,
                 json={"appCode": PASSPORT_APP_CODE},
@@ -176,7 +174,7 @@ class PassportLogin:
         """
         start_time = time.time()
         
-        async with httpx.AsyncClient(timeout=self.timeout) as client:
+        async with httpx.AsyncClient(timeout=self.timeout, proxy=None) as client:
             while time.time() - start_time < max_wait:
                 resp = await client.get(
                     SCAN_STATUS_URL,
@@ -208,13 +206,13 @@ class PassportLogin:
         第3步：使用scanCode获取token
         返回 {token, hgId, deviceToken/uid}
         """
-        async with httpx.AsyncClient(timeout=self.timeout) as client:
+        async with httpx.AsyncClient(timeout=self.timeout, proxy=None) as client:
             resp = await client.post(
                 TOKEN_BY_SCAN_URL,
                 json={
                     "appCode": PASSPORT_APP_CODE,
                     "scanCode": scan_code,
-                    "from": 1
+                    "from": 0
                 },
                 headers=HEADERS
             )
@@ -247,7 +245,7 @@ class PassportLogin:
         第4步：OAuth2鉴权获取授权码
         返回 {uid, code}
         """
-        async with httpx.AsyncClient(timeout=self.timeout) as client:
+        async with httpx.AsyncClient(timeout=self.timeout, proxy=None) as client:
             resp = await client.post(
                 OAUTH2_GRANT_URL,
                 json={
@@ -312,7 +310,7 @@ class U8Login:
         第1步：Unity用户鉴权
         返回 {token, uid}
         """
-        async with httpx.AsyncClient(timeout=self.timeout) as client:
+        async with httpx.AsyncClient(timeout=self.timeout, proxy=None) as client:
             resp = await client.post(
                 U8_TOKEN_URL,
                 json={
@@ -349,7 +347,7 @@ class U8Login:
         """
         第2步：获取服务器列表
         """
-        async with httpx.AsyncClient(timeout=self.timeout) as client:
+        async with httpx.AsyncClient(timeout=self.timeout, proxy=None) as client:
             resp = await client.post(
                 SERVER_LIST_URL,
                 json={"token": token},
@@ -382,7 +380,7 @@ class U8Login:
         第3步：获取grant授权码（用于TCP登录）
         返回 {uid, grant_code}
         """
-        async with httpx.AsyncClient(timeout=self.timeout) as client:
+        async with httpx.AsyncClient(timeout=self.timeout, proxy=None) as client:
             resp = await client.post(
                 U8_GRANT_URL,
                 json={
@@ -417,7 +415,7 @@ class U8Login:
         """
         第4步（可选）：确认登录服务器
         """
-        async with httpx.AsyncClient(timeout=self.timeout) as client:
+        async with httpx.AsyncClient(timeout=self.timeout, proxy=None) as client:
             resp = await client.post(
                 CONFIRM_SERVER_URL,
                 json={

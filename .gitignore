@@ -369,3 +369,4 @@ endfield-cbt2-dumps/
 Data/GameAssembly.dll
 Client/scan_qrcode.png
 Client/config_cache/*
+Il2CppInspector/

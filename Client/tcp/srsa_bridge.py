@@ -1,6 +1,8 @@
 """
 SRSA加密桥接模块（生产环境）
-使用DLL与游戏引擎进行SRSA加密/解密操作
+使用GameAssembly.dll与游戏引擎进行SRSA加密/解密操作
+
+DLL路径: ../Data/GameAssembly.dll
 """
 
 from __future__ import annotations
@@ -16,6 +18,9 @@ C_SET = 0x971AB5C8FF
 C_RET = 0x0F91A4399A0
 HANDLE_MIN = 0x1000
 MAX_LEN = 16 * 1024 * 1024
+
+# 默认DLL路径（相对于Client目录）
+DEFAULT_DLL_DIR = Path("../Data")
 
 
 class SRSABridgeError(Exception):
@@ -34,10 +39,10 @@ class SRSABridge:
         初始化SRSA桥接
         
         Args:
-            dll_dir: GameAssembly.dll所在目录（如None则自动查找）
+            dll_dir: GameAssembly.dll所在目录（默认: ../Data）
         """
         if dll_dir is None:
-            dll_dir = Path(".").resolve()
+            dll_dir = DEFAULT_DLL_DIR.resolve()
         
         self.dll_dir = dll_dir
         self._dll = None
@@ -95,10 +100,10 @@ class SRSABridge:
     def encrypt_login_body(self, plain: bytes) -> bytes:
         """
         加密登录消息体
-        
+
         Args:
             plain: 明文消息体
-        
+
         Returns:
             加密后的消息体
         """
@@ -107,27 +112,28 @@ class SRSABridge:
         if ptr is None:
             raise SRSABridgeError("encrypt_login_body: ptr is null")
 
-        try:
-            handle = self._get_code(ptr ^ C_GET, len(plain))
-            if handle < HANDLE_MIN:
-                raise SRSABridgeError(f"mono_method_h_get_code failed code={handle}")
+        handle = self._get_code(ptr ^ C_GET, len(plain))
+        if handle < HANDLE_MIN:
+            raise SRSABridgeError(f"mono_method_h_get_code failed code={handle}")
 
+        try:
             decoded_ptr = handle ^ C_RET
             out_len = ctypes.c_int32.from_address(decoded_ptr + 4).value
             if out_len <= 0 or out_len > MAX_LEN:
                 raise SRSABridgeError(f"encrypt out_len invalid: {out_len}")
-            return ctypes.string_at(decoded_ptr, out_len)
+            # 复制数据后再释放handle
+            result = bytes(ctypes.string_at(decoded_ptr, out_len))
+            return result
         finally:
-            if 'handle' in locals() and handle >= HANDLE_MIN:
-                self._remove_code(handle)
+            self._remove_code(handle)
     
     def decrypt_login_body(self, encrypted_body: bytes) -> bytes:
         """
         解密登录响应消息体
-        
+
         Args:
             encrypted_body: 加密的消息体
-        
+
         Returns:
             解密后的明文消息体
         """
@@ -136,19 +142,20 @@ class SRSABridge:
         if ptr is None:
             raise SRSABridgeError("decrypt_login_body: ptr is null")
 
-        try:
-            handle = self._set_code(ptr ^ C_SET)
-            if handle < HANDLE_MIN:
-                raise SRSABridgeError(f"mono_method_h_set_code failed code={handle}")
+        handle = self._set_code(ptr ^ C_SET)
+        if handle < HANDLE_MIN:
+            raise SRSABridgeError(f"mono_method_h_set_code failed code={handle}")
 
+        try:
             decoded_ptr = handle ^ C_RET
             out_len = ctypes.c_int32.from_address(decoded_ptr).value
             if out_len < 0 or out_len > MAX_LEN:
                 raise SRSABridgeError(f"decrypt out_len invalid: {out_len}")
-            return ctypes.string_at(decoded_ptr + 4, out_len)
+            # 复制数据后再释放handle
+            result = bytes(ctypes.string_at(decoded_ptr + 4, out_len))
+            return result
         finally:
-            if 'handle' in locals() and handle >= HANDLE_MIN:
-                self._remove_code(handle)
+            self._remove_code(handle)
     
     def try_decrypt_login_body(self, encrypted_body: bytes) -> Optional[bytes]:
         """尝试解密（忽略错误）"""
@@ -158,49 +165,28 @@ class SRSABridge:
             return None
 
 
-class MockSRSABridge:
-    """
-    模拟SRSA桥接（用于不需要加密的测试环境）
-    """
-    
-    def encrypt_login_body(self, plain: bytes) -> bytes:
-        return plain
-    
-    def decrypt_login_body(self, encrypted_body: bytes) -> bytes:
-        return encrypted_body
-    
-    def try_decrypt_login_body(self, encrypted_body: bytes) -> Optional[bytes]:
-        """尝试解密（模拟）"""
-        return encrypted_body
-
-
-def get_srsa_bridge(dll_dir: Optional[Path] = None, use_mock: bool = False):
+def get_srsa_bridge(dll_dir: Optional[Path] = None):
     """
     获取SRSA桥接实例
     
     Args:
-        dll_dir: GameAssembly.dll目录
-        use_mock: 是否使用模拟桥接
+        dll_dir: GameAssembly.dll目录（默认: ../Data）
     
     Returns:
         SRSA桥接实例
-    """
-    if use_mock:
-        return MockSRSABridge()
     
-    try:
-        return SRSABridge(dll_dir)
-    except SRSABridgeError as e:
-        print(f"[SRSA] 初始化失败: {e}，回退到模拟模式")
-        return MockSRSABridge()
+    Raises:
+        SRSABridgeError: DLL初始化失败时抛出
+    """
+    return SRSABridge(dll_dir)
 
 
 if __name__ == "__main__":
     import sys
     
     try:
-        # 从当前目录查找DLL
-        bridge = SRSABridge(Path("."))
+        # 从默认路径查找DLL
+        bridge = SRSABridge()
         
         # 测试加密
         test_data = b"Hello, World!"

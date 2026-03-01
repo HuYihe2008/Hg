@@ -34,16 +34,16 @@ class GameClient:
     ):
         """
         初始化客户端
-        
+
         Args:
             config_dir: 配置缓存目录
-            dll_dir: GameAssembly.dll所在目录
+            dll_dir: GameAssembly.dll所在目录（优先使用，默认: ../Data）
             oversea: 是否为海外版本
         """
         self.config_dir = Path(config_dir) if config_dir else Path("./config_cache")
-        self.dll_dir = Path(dll_dir) if dll_dir else Path(".")
+        self.dll_dir = Path(dll_dir) if dll_dir else None
         self.oversea = oversea
-        
+
         self.config_result = None
         self.login_session: Optional[LoginSession] = None
         self.tcp_client = None
@@ -112,15 +112,26 @@ class GameClient:
         try:
             # 初始化SRSA桥接
             logger.info("[Client] 初始化SRSA加密桥接...")
-            self.srsa_bridge = get_srsa_bridge(self.dll_dir, use_mock=False)
+            # 如果指定了dll_dir则优先使用，否则使用默认路径 ../Data
+            self.srsa_bridge = get_srsa_bridge(self.dll_dir)
             
-            # 建立TCP连接并登录
-            logger.info(f"[Client] 连接到TCP服务器...")
+            # 准备配置上下文
+            config_ctx = {}
+            if self.config_result:
+                # 从配置结果中获取版本信息
+                if self.config_result.launcher_version:
+                    config_ctx["client_version"] = self.config_result.launcher_version.get("version", "1.0.14")
+                if self.config_result.res_version:
+                    config_ctx["res_version"] = self.config_result.res_version.get("resourceVersion", "1.0.14")
+            
+            # 建立 TCP 连接并登录
+            logger.info(f"[Client] 连接到 TCP 服务器...")
             self.tcp_client = await tcp_login_flow(
                 host=self.login_session.server_host,
                 port=self.login_session.server_port,
                 grant_code=self.login_session.u8_grant_code,
-                srsa_bridge=self.srsa_bridge
+                srsa_bridge=self.srsa_bridge,
+                config_ctx=config_ctx
             )
             
             if not self.tcp_client:
@@ -249,13 +260,13 @@ async def main():
     """主函数"""
     parser = argparse.ArgumentParser(
         description="Campofinale 生产服务器客户端",
-        epilog="示例：python main.py --dll-dir . --config-dir ./config_cache"
+        epilog="示例：python main.py --config-dir ./config_cache"
     )
-    
+
     parser.add_argument(
         "--dll-dir",
-        default=".",
-        help="GameAssembly.dll所在目录（用于SRSA加密）"
+        default=None,
+        help="GameAssembly.dll所在目录（优先使用，默认: ../Data）"
     )
     parser.add_argument(
         "--config-dir",

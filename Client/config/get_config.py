@@ -102,14 +102,14 @@ class EndfieldConfigFetcher:
 
     def _get_text(self, url: str) -> str:
         """获取HTTP文本响应"""
-        with httpx.Client(timeout=self._timeout, follow_redirects=True) as client:
+        with httpx.Client(timeout=self._timeout, proxy=None, follow_redirects=True) as client:
             r = client.get(url)
             r.raise_for_status()
             return r.text
 
     def _get_json(self, url: str) -> dict[str, Any]:
         """获取HTTP JSON响应"""
-        with httpx.Client(timeout=self._timeout, follow_redirects=True) as client:
+        with httpx.Client(timeout=self._timeout, proxy=None, follow_redirects=True) as client:
             r = client.get(url)
             r.raise_for_status()
             return r.json()
@@ -121,7 +121,7 @@ class EndfieldConfigFetcher:
     def get_u8_extra_config(self, file_path: str) -> dict[str, Any]:
         """获取U8额外配置"""
         url = file_path.rstrip("/") + "/U8Data/config/u8ExtraConfig.bin"
-        with httpx.Client(timeout=self._timeout, follow_redirects=True) as client:
+        with httpx.Client(timeout=self._timeout, proxy=None, follow_redirects=True) as client:
             r = client.get(url)
             r.raise_for_status()
             raw = r.content
