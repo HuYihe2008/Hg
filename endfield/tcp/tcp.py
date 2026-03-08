@@ -514,6 +514,14 @@ def build_tcp_packet(
     force_emit_checksum: bool = False,
     body_len_override: Optional[int] = None,
 ) -> bytes:
+    if len(body) == 0 and body_len_override is not None and (force_emit_checksum or checksum is not None):
+        return build_login_head_packet(
+            msgid,
+            body_len_override,
+            checksum=checksum,
+            force_emit_checksum=force_emit_checksum,
+        )
+
     cs_head = _build_cs_head(
         msgid=msgid,
         up_seqid=seq_id,
@@ -533,6 +541,24 @@ def build_tcp_packet(
     packet.extend(struct.pack("<H", body_len))
     packet.extend(cs_head)
     packet.extend(body)
+    return bytes(packet)
+
+
+def build_login_head_packet(
+    msgid: int,
+    body_len: int,
+    checksum: Optional[int] = None,
+    *,
+    force_emit_checksum: bool = False,
+) -> bytes:
+    cs_head = encode_uint32(1, msgid)
+    if force_emit_checksum or checksum is not None:
+        cs_head += encode_uint32(7, _to_int(checksum, 0))
+
+    packet = bytearray()
+    packet.append(len(cs_head))
+    packet.extend(struct.pack("<H", body_len))
+    packet.extend(cs_head)
     return bytes(packet)
 
 
