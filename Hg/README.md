@@ -52,7 +52,6 @@ dotnet build -c Release
 
 - Or build with Visual Studio if you have it installed (and the .NET desktop development "module")
 
-
 ## Discord for support
 
 If you want to discuss, ask for support or help with this project, join our [Discord Server](https://discord.gg/HdXZY2Q9vs)!

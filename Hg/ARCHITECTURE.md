@@ -17,37 +17,7 @@ Hg/
 │   ├── Packets/                    # 数据包处理
 │   │   └── Cs/HandleCsLogin.cs    # ← 客户端登录包在此处理
 │   └── ...
-│
-└── Client/                         # 【客户端】新增 - 生产环境客户端实现
-    ├── config/                     # 配置获取与解密
-    │   ├── get_config.py          # ✅ 自动拉取launcher/game-config
-    │   │                          # ✅ AES-CBC解密（支持CN/Oversea）
-    │   └── __init__.py
-    │
-    ├── login/                      # HTTP认证流程
-    │   ├── login.py               # ✅ 完整登录流程
-    │   │                          # ✅ 鹰角通行证扫码 (as.hypergryph.com)
-    │   │                          # ✅ Unity用户认证 (u8.hypergryph.com)
-    │   │                          # ✅ 服务器选择与grant授权码
-    │   └── __init__.py
-    │
-    ├── tcp/                        # TCP通信与加密
-    │   ├── tcp.py                 # ✅ TCP客户端实现
-    │   │                          # ✅ 数据包编码/解码
-    │   │                          # ✅ XXE1会话加密支持
-    │   │
-    │   ├── srsa_bridge.py         # ✅ SRSA加密桥接
-    │   │                          # ✅ GameAssembly.dll交互
-    │   │                          # ✅ 登录消息体加密/解密
-    │   │
-    │   ├── xxe1.py                # ✅ XXE1会话加密算法
-    │   │                          # ✅ AES-CTR加密 + HMAC-SHA256认证
-    │   │                          # ✅ 收发计数器管理
-    │   └── __init__.py
-    │
-    ├── main.py                     # ✅ 主入口 - 三阶段登录流程
-    ├── requirements.txt            # ✅ 依赖清单
-    └── README.md                   # ✅ 使用文档
+
 ```
 
 ## 工作流程图
