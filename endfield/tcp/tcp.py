@@ -485,17 +485,29 @@ def _build_cs_head(
     checksum: Optional[int] = None,
     force_emit_down_seqid: bool = False,
     force_emit_checksum: bool = False,
+    is_login: bool = False,
 ) -> bytes:
+    """
+    构建 CS 头协议
+
+    参数:
+        is_login: 是否为登录包。登录包只包含 msgid 和 checksum，不包含 seqid 等字段
+    """
     msg = b""
     msg += encode_uint32(1, msgid)
-    msg += encode_uint64(2, up_seqid)
-    if force_emit_down_seqid or down_seqid != 0:
-        msg += encode_uint64(3, down_seqid)
-    msg += encode_uint32(4, total_pack_count)
-    if current_pack_index != 0:
-        msg += encode_uint32(5, current_pack_index)
-    if is_compress:
-        msg += encode_bool(6, is_compress)
+
+    # 登录包只包含 field 1 (msgid) 和 field 7 (checksum)
+    # 不包含 field 2 (up_seqid) 和 field 4 (total_pack_count)
+    if not is_login:
+        msg += encode_uint64(2, up_seqid)
+        if force_emit_down_seqid or down_seqid != 0:
+            msg += encode_uint64(3, down_seqid)
+        msg += encode_uint32(4, total_pack_count)
+        if current_pack_index != 0:
+            msg += encode_uint32(5, current_pack_index)
+        if is_compress:
+            msg += encode_bool(6, is_compress)
+
     if force_emit_checksum or checksum is not None:
         msg += encode_uint32(7, _to_int(checksum, 0))
     return msg
@@ -513,6 +525,7 @@ def build_tcp_packet(
     force_emit_down_seqid: bool = False,
     force_emit_checksum: bool = False,
     body_len_override: Optional[int] = None,
+    is_login: bool = False,
 ) -> bytes:
     if len(body) == 0 and body_len_override is not None and (force_emit_checksum or checksum is not None):
         return build_login_head_packet(
@@ -532,6 +545,7 @@ def build_tcp_packet(
         checksum=checksum,
         force_emit_down_seqid=force_emit_down_seqid,
         force_emit_checksum=force_emit_checksum,
+        is_login=is_login,
     )
     head_len = len(cs_head)
     body_len = body_len_override if body_len_override is not None else len(body)
@@ -748,9 +762,10 @@ class TCPClient:
         logger.info(f"[TCP]   Body包: len={len(body_packet)}")
         logger.info(f"[TCP] 登录包元信息: {body_meta}")
         
-        # 发送两个包
-        await self._write(head_packet)
-        await self._write(body_packet)
+        # 分两个包发送：先发送 head，紧接着发送 body
+        self.writer.write(head_packet)
+        self.writer.write(body_packet)
+        await self.writer.drain()
 
         header = await self._read_exact(3)
         head_len = header[0]
